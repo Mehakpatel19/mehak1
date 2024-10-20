@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Natural Disaster Risk Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 200px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        /* Legend for Risk Levels */
+        .legend {
+            background-color: white;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            line-height: 18px;
+            color: #333;
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+        }
+        
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        /* Risk Levels for Disasters */
+        .risk-low { background-color: #2ecc71; }    /* Green for Low Risk */
+        .risk-medium { background-color: #f39c12; } /* Orange for Medium Risk */
+        .risk-high { background-color: #e74c3c; }   /* Red for High Risk */
+        .risk-critical { background-color: #c0392b; }/* Dark Red for Critical Risk */
+    </style>
+</head>
+<style>
+    body {
+        background-color: #a75151;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    h1, p {
+        margin-bottom: 20px;
+    }
+
+    button {
+        padding: 10px 20px;
+        position: absolute;
+        top: 10px;
+        right:10px;
+        font-size: 1rem;
+        cursor: pointer;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+    }
+
+    body.dark-mode {
+        background-color: #353637;
+        color: #f5f5f5;
+    }
+
+    body.dark-mode button {
+        background-color: #f5f5f5;
+        color: #1e1e1e;
+    }
+</style>
+
+
+<body>
+
+<div class="container">
+    <h1 align="center">Disaster Monitoring Platform</h1>
+    <button onclick="toggleMode()">Toggle</button>
+    
+</div>
+
+<script>
+    function toggleMode() {
+        // Toggle the dark-mode class on the body element
+        document.body.classList.toggle("dark-mode");
+    }
+</script>
+<body><center>
+    <marquee><h1>Live Disaster Risk Map</h1></marquee>
+    <h3><span style ="border: 3px solid white;">Visualizing risks for earthquakes, floods, and hurricanes in real-time.</h3></span>
+
+    <!-- Interactive Map Container -->
+    <div id="map"></div>
+
+    <!-- Legend for Risk Colors -->
+    <div class="legend"><right>
+        <strong>Risk Levels</strong><br>
+        <i class="risk-low"></i> Low<br>
+        <i class="risk-medium"></i> Medium<br>
+        <i class="risk-high"></i> High<br>
+        <i class="risk-critical"></i> Critical<br>
+    </div></right>
+
+
+    
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+<!-- widget -->
+ <!-- Include Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize the map and set its view to a central point in India
+        var map = L.map('map').setView([20.5937, 78.9629], 5);
+
+        // Add OpenStreetMap tile layer to the map
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Example sensor data for different disasters (earthquake, flood, hurricane)
+        var disasterData = [
+            { lat: 28.6139, lon: 77.2090, type: 'earthquake', severity: 'high', data: 'Richter Scale: 6.2 - High Risk' }, // New Delhi
+            { lat: 19.0760, lon: 72.8777, type: 'flood', severity: 'medium', data: 'River Level: 3.5m - Medium Risk' }, // Mumbai
+            { lat: 15.2993, lon: 74.1240, type: 'hurricane', severity: 'critical', data: 'Wind Speed: 165mph - Category 5 Hurricane' } // Goa
+        ];
+
+        // Function to get color based on risk severity
+        function getColor(severity) {
+            switch(severity) {
+                case 'low': return '#2ecc71';       // Green
+                case 'medium': return '#f39c12';    // Orange
+                case 'high': return '#e74c3c';      // Red
+                case 'critical': return '#c0392b';  // Dark Red
+                default: return '#cccccc';          // Default Gray
+            }
+        }
+
+        // Add markers for each disaster point on the map
+        disasterData.forEach(function(disaster) {
+            // Create a circle marker based on severity level
+            var circle = L.circle([disaster.lat, disaster.lon], {
+                color: getColor(disaster.severity),
+                fillColor: getColor(disaster.severity),
+                fillOpacity: 0.7,
+                radius: 10000
+            }).addTo(map);
+
+            // Bind popup to display the type and data of the disaster
+            circle.bindPopup("<b>Disaster Type:</b> " + disaster.type + "<br>" + disaster.data + "<br><b>Severity:</b> " + disaster.severity);
+        });
+    </script>
+    </center>
+</body>
+</html>
